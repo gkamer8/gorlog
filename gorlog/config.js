@@ -21,7 +21,7 @@ const POSTS = [
         'desc': 'Networking is pretty complicated. Who knew?',
         'author': 'Gordon Kamer',
         'date': '2025-06-25',
-        'slug': 'creating-a-wifi-captive-portal-for-guests-to-my-apartment'
+        'slug': 'wifi-captive-project'
     },
     // AUTO ADD LOCATION - KEEP THIS COMMENT AT END OF LIST WITH PRECEDING COMMA - DO NOT REMOVE OR ALTER THIS LINE
 ]
