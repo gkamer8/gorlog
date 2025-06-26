@@ -23,7 +23,7 @@
     </head>
     <body>
         <p>
-            I thought it would be fun to make guests to my apartment agree to some embarassing terms in order to use the WiFi.
+            I thought it would be fun to make guests to my apartment agree to some embarrassing terms in order to use the WiFi.
             The project turned out to be one of the more complicated things I've done with a computer.
             I'd like to show you how you might do it yourself, and in so doing, discuss some of the finer points of networking on Linux.
         </p>
@@ -34,7 +34,7 @@
             We will do everything from scratch (or close to it). There are tools like nodogsplash or OpenWRT you might consider if you'd like a less hardcore experience.
         </p>
         <p>
-            We'll talk about systemd, which starts many of the important processes on your machine when your comptuer boots up; how Unix machines (Mac and Linux) see and interact with network devices; how your computer is assigned an IP address; and other light topics.
+            We'll talk about systemd, which starts many of the important processes on your machine when your computer boots up; how Unix machines (Mac and Linux) see and interact with network devices; how your computer is assigned an IP address; and other light topics.
         </p>
         
         <h4>Software Overview</h4>
@@ -45,13 +45,13 @@
         <ul>
             <li><b>hostapd</b>, for broadcasting your WiFi access point</li>
             <li><b>dnsmasq</b>, for handling DNS and DHCP (more on this later)</li>
-            <li><b>nftables</b> (installed with the Linux kernel), for managing your firewall</li>
+            <li><b>nftables</b> (installed with Linux), for managing your firewall</li>
             <li><b>NetworkManager</b>, for managing your regular internet connection (systemd-networkd is a more barebones alternative for servers)</li>
             <li>Your captive portal server, which you can make using your favorite web development tools</li>
         </ul>
         <p>
             For the captive portal itself, I will use Flask with gunicorn.
-            If your Linux distribution is using systemd, which it probably is, you can check the status of each of these services using <code>systemctl status service-name</code>, replacing <code>service-name</code> with each of the above services (captilization matters).
+            If your Linux distribution is using systemd, which it probably is, you can check the status of each of these services using <code>systemctl status service-name</code>, replacing <code>service-name</code> with each of the above services (capitalization matters).
             I also set up the captive portal web server as a systemd service, which I will show you how to set up.
         </p>
 
@@ -68,7 +68,7 @@
             Less critically but conveniently, it can function in AP mode at the same time it's using WiFi normally.
         </p>
         <p>
-            To confirm that you have a suitable WiFi card, you can use the iw tool, which is included in the Linux kernel (the w in iw stands for "wireless").
+            To confirm that you have a suitable WiFi card, you can use the iw tool, which is included with Linux (the w in iw can be thought of as "wireless").
             The command <code>iw list</code> will show information about your WiFi devices (cards). Your device might be named something like phy0, and iw will give a bunch of information about phy0 you don't care about - except for one thing, which is its "valid interface combinations."
             One of the lines for my device looks like this:
             <pre>#{ managed } <= 1, #{ AP, P2P-client, P2P-GO } <= 1, #{ P2P-device } <= 1,total <= 3, #channels <= 1</pre>
@@ -107,7 +107,7 @@
             Typically, one IP address is assigned for each interface (your computer can have multiple IP addresses).
             Typical names for these interfaces, which are likely already created on your machine, are "eth0" for your first ethernet port, "wlan0" for your WiFi (wireless LAN), and "lo" for loopback (the special interface for your 127.0.0.1 IP).
             In other contexts, you may recall that running a server at "0.0.0.0:80" is different from running it at "127.0.0.1:80" because "0.0.0.0" references all interfaces.
-            You can check your network interfaces using <code>ip link show</code> (ip is a utility included in linux for managing networking in addition to iw).
+            You can check your network interfaces using <code>ip link show</code> (ip is a utility included in Linux for managing networking in addition to iw).
             For example, here is what I got when running <code>ip link show</code> before starting this project:
             <pre>
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
@@ -123,7 +123,7 @@
         </p>
         <p>
             The relationship between networking devices and interfaces is not strictly one-to-one.
-            Devices may be associated with multiple interfaces. Each interface is associated with a single IP.
+            Devices may be associated with multiple interfaces. Interfaces are associated with IPs.
             The first thing we have to do for this project is create a second interface for our WiFi card that acts as our access point, which will have a new IP.
         </p>
         <p>
@@ -150,7 +150,7 @@ WantedBy=multi-user.target</pre>
         </p>
         <p>
             The next two commands use ip. First, we assign a local IP address 192.168.12.1 to our interface.
-            The /24 is a "subnet mask", which specifies that it can reach 192.168.0.0 through 192.168.255.255 on its local network, the IPs that will be associated with devices our new network.
+            The /24 is a "subnet mask", which specifies that addresses 192.168.0.0 through 192.168.255.255 are "on-link", the IPs that will be associated with devices our new network.
             <a href="https://datatracker.ietf.org/doc/html/rfc1918">RFC 1918</a> defines the standard which says that 192.168.0.0 to 192.168.255.255 are all local IPs.
             It also permits 10.0.0.0/8 and 172.16.0.0/12. If your regular WiFi uses 192.168 prefixed IPs, choose one of the alternate ranges.
             You can check your existing IP address using <code>ip addr show</code> and looking for the "inet" entry.
@@ -190,10 +190,10 @@ wmm_enabled=1
         <p>
             Most home routers can host WiFi at 2.4GHz and 5GHz. You sometimes will see separate networks available for each, though you may see only one (your computer will negotiate with the router for one of the bands).
             5GHz is faster and generally recommended.
-            However, in this case, I happen to know that the Intel AX210 (as well as all Intel cards) have a bug that prevents them from running AP mode at 5GHz.
+            However, in this case, I happen to know that the Intel AX210 does not support AP mode at 5GHz.
             I also know from before that my card can support AP and managed at the same time only on a single channel.
             Thus, I must use 2.4GHz for both my AP and normal WiFi connection, which I will have to ensure is at 2.4GHz.
-            Note also that I need to match the channel (6) to the same channel my regular WiFi is using. Since 1, 6, and 11 are all valid for 2.4GHz, we'll have to check.
+            Note also that I need to match the channel (6) to the same channel my regular WiFi is using. Generally, 1, 6, or 11 is used for 2.4GHz, so we'll have to check.
             Annoyingly, the exact channel can also change over time, which means that you may have to reconfigure this value repeatedly (please tell me if you have a solution here).
         </p>
         <p>
@@ -258,9 +258,9 @@ dhcp-option=6,192.168.12.1</pre>
         </p>
         <p>
             Here is some background on DNS: Whenever your computer needs to resolve the IP of a domain name (do DNS lookup), it will ask a process bound to port 53.
-            That process will typically look at /etc/resolv.conf for a list of authoritative nameservers it can refer to.
+            That process will typically look at /etc/resolv.conf for a list of nameservers it should refer to.
             One such namserver has the IP 1.1.1.1, which is run by Cloudflare.
-            The authoritative nameservers your machine will talk to are run by big-shot cloud providers like Google or Cloudflare.
+            The nameservers your machine will talk to are run by big-shot cloud providers like Google or Cloudflare.
             Their IPs are usually special because they paid a lot of money for them (1.1.1.1, 8.8.8.8, etc.).
             It is sometimes useful to run <code>ping 1.1.1.1</code>.
             We will have complete control of the DNS lookup through dnsmasq and our firewall (more later). It will be key to showing our captive portal.
@@ -276,7 +276,7 @@ DNSStubListener=no</pre>
             Firewall and Port Forwarding
         </h4>
         <p>
-            Now we will need a suitable firewall to route traffic correctly. The latest Linux kernels use nftables, which you can manage using systemd.
+            Now we will need a suitable firewall to route traffic correctly. The newer Linux distributions generally use nftables, which you can manage using systemd (some distributions or older kernels might use iptables).
             The nftables configuration is located at /etc/nftables.conf. We will write one without the captive portal and modify it later to insert a captive portal.
             <pre>
 #!/usr/sbin/nft -f
@@ -626,7 +626,7 @@ WantedBy=multi-user.target</pre>
             <li>Use <code>iw dev</code> to list your wireless network interfaces, which should include ap0.</li>
             <li>If you don't have an internet connection on the host, use <code>nmcli device wifi list</code> to check the channel your router is using for 2.4GHz connections. Ensure that the channel matches what you've configured.</li>
             <li>Another method to debug internet connectivity on the host is to check the status of NetworkManager and wpa_supplicant (NetworkManager will spawn wpa_supplicant to help with connecting to WiFi).</li>
-            <li>For command line tools provided in the Linux kernel, you can use <code>man</code> (like <code>man iw</code>) to view manual pages that explain how to use the tool.</li>
+            <li>For command line tools provided by Linux, you can use <code>man</code> (like <code>man iw</code>) to view manual pages that explain how to use the tool.</li>
             <li>If you're stuck looking at some text in the terminal, you might be in vi or vim. Type <code>:q</code> to exit.</li>
             <li>Netizens sometimes report that <code>iw dev wlp3s0 set power_save off</code> helps if their network card's power saving mode is interfering with the access point.</li>
             <li>One powerful tool to inspect traffic on your network is tcpdump. I would recommend copying the output of tcpdump into ChatGPT and asking it what's going on on your network. It can help diagnose what traffic is failing, especially if it's an HTTPS (port 443) related issue.</li>
